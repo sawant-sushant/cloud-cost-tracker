@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloud Cost Tracker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+    #summary { padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+    .warn { background: #fdecea; }
+    .ok { background: #e8f5e9; }
+  </style>
+</head>
+<body>
+  <h1>Cloud Cost Tracker</h1>
+  <div id="summary">Loading...</div>
+  <table>
+    <thead><tr><th>Service</th><th>Cost (USD)</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <script>
+    fetch("/api/costs")
+      .then((r) => r.json())
+      .then((d) => {
+        const s = document.getElementById("summary");
+        s.className = d.overBudget ? "warn" : "ok";
+        s.textContent = `Total: $${d.total} of $${d.budget} budget (${d.mode} data)`;
+        const rows = document.getElementById("rows");
+        d.items.forEach((i) => {
+          const tr = document.createElement("tr");
+          [i.service, i.cost.toFixed(2)].forEach((v) => {
+            const td = document.createElement("td");
+            td.textContent = v;
+            tr.appendChild(td);
+          });
+          rows.appendChild(tr);
+        });
+      })
+      .catch(() => {
+        document.getElementById("summary").textContent = "Failed to load costs";
+      });
+  </script>
+</body>
+</html>
