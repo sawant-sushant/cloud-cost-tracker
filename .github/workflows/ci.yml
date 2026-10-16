@@ -40,12 +40,14 @@ jobs:
         run: docker build -t $IMAGE:${{ github.sha }} ./app
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: 1
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            ghcr.io/aquasecurity/trivy:0.69.3 image \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --exit-code 1 \
+            $IMAGE:${{ github.sha }}
 
       - name: Log in to GHCR
         if: github.ref == 'refs/heads/main'
